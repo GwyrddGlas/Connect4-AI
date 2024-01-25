@@ -160,8 +160,32 @@ local isGameOver = false
 local aiDelay = 1 
 local aiDelayTimer = 0
 
+local function aiFindWinningMove(symbolArray)
+    for x = 1, 7 do
+        for y = 1, 6 do
+            if isCellEmpty(x, y) then
+                -- Temporarily place the counter
+                table.insert(symbolArray, {x = (x - 1) * (love.graphics.getWidth() / 7), y = (y - 1) * (love.graphics.getHeight() / 7)})
+                local win = checkForWin('Y') -- Assuming 'Y' is the AI
+                table.remove(symbolArray) -- Remove the temporary counter
+                if win then
+                    return x, y
+                end
+            end
+        end
+    end
+    return nil -- No winning move found
+end
+
 local function aiMovement()
     local availableColumns = {}
+
+    local winX, winY = aiFindWinningMove(countersYellow)
+    if winX then
+        createYellowCounterInCell(winX, winY)
+        isMoveMade = true
+        return
+    end
 
     for x = 1, 7 do
         for y = 7, 1, -1 do -- Start from bottom row
