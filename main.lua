@@ -169,21 +169,26 @@ local function aiFindWinningMove(symbolArray)
     for x = 1, 7 do
         for y = 1, 6 do
             if isCellEmpty(x, y) then
-                -- Temporarily place the counter
-                table.insert(symbolArray, {x = (x - 1) * (love.graphics.getWidth() / 7), y = (y - 1) * (love.graphics.getHeight() / 7)})
-                local win = checkForWin('Y') -- Assuming 'Y' is the AI
-                table.remove(symbolArray) -- Remove the temporary counter
+                local tempCounters = {}
+                for _, v in ipairs(symbolArray) do
+                    table.insert(tempCounters, {x = v.x, y = v.y})
+                end
+
+                table.insert(tempCounters, {x = (x - 1) * (love.graphics.getWidth() / 7), y = (y - 1) * (love.graphics.getHeight() / 7)})
+                
+                local win = checkForWin('Y', tempCounters)
+
                 if win then
                     return x, y
                 end
             end
         end
     end
-    return nil -- No winning move found
+    return nil 
 end
 
+
 local function aiMovement()
-    -- Check if the AI can win in the next move
     local winX, winY = aiFindWinningMove(countersYellow)
     if winX then
         createYellowCounterInCell(winX, winY)
@@ -191,7 +196,6 @@ local function aiMovement()
         return
     end
 
-    -- Check if the player can win in the next move and block it
     local blockX, blockY = aiFindWinningMove(countersRed)
     if blockX then
         createYellowCounterInCell(blockX, blockY)
@@ -199,13 +203,12 @@ local function aiMovement()
         return
     end
 
-    -- If no immediate win or block, choose a column randomly
     local availableColumns = {}
 
     for x = 1, 7 do
-        for y = 7, 1, -1 do
+        for y = 7, 1, -1 do  
             if isCellEmpty(x, y) then
-                table.insert(availableColumns, x)
+                table.insert(availableColumns, {x = x, y = y})
                 break
             end
         end
@@ -213,15 +216,11 @@ local function aiMovement()
 
     if #availableColumns > 0 then
         local choice = availableColumns[math.random(#availableColumns)]
-        for y = 7, 1, -1 do
-            if isCellEmpty(choice, y) then
-                createYellowCounterInCell(choice, y)
-                isMoveMade = true
-                break
-            end
-        end
+        createYellowCounterInCell(choice.x, choice.y) 
+        isMoveMade = true
     end
 end
+
 
 local function resetGame()
     countersRed = {}
